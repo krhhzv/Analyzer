@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>analyzer lol</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Space+Mono&display=swap"
+        rel="stylesheet">
+
+    <style>
+        :root {
+            --bg: #0a0a0a;
+            --surface: #111;
+            --line: #1a1a1a;
+            --text: #fff;
+            --muted: #777;
+            --accent: #ff3b3b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            height: 100vh;
+            height: calc(var(--vh, 1vh) * 100);
+            overflow: hidden;
+            margin: 0;
+            -webkit-text-size-adjust: 100%;
+            text-size-adjust: 100%;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #050505;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* MOBILE (DEFAULT) */
+        .wrap {
+            width: 100%;
+            height: 100vh;
+            height: calc(var(--vh, 1vh) * 100);
+            padding: 24px 20px;
+            padding-top: calc(24px + env(safe-area-inset-top));
+            padding-bottom: calc(24px + env(safe-area-inset-bottom));
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            background: var(--bg);
+            position: relative;
+            overflow: hidden;
+        }
+
+        #home {
+            justify-content: space-between;
+        }
+
+        /* DESKTOP (PC) OPTIMIZATION */
+        @media screen and (min-width: 768px) {
+            .wrap {
+                max-width: 420px;
+                height: 85vh;
+                margin: 0 auto;
+                border: 1px solid #1a1a1a;
+                border-radius: 12px;
+                min-height: auto;
+            }
+        }
+
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        }
+
+        .logo {
+            font-size: 26px;
+            font-weight: 500;
+            letter-spacing: -0.2px;
+            margin-bottom: 2px;
+        }
+
+        #home .logo {
+            font-size: 28px;
+        }
+
+        .sub {
+            font-family: 'Space Mono';
+            font-size: 12px;
+            color: var(--muted);
+            margin-top: 0;
+            margin-bottom: 12px;
+        }
+
+        #home .sub {
+            margin-bottom: 16px;
+        }
+
+        .divider {
+            height: 1px;
+            background: #1a1a1a;
+            margin: 0 0 12px;
+        }
+
+        .modes-label {
+            font-family: 'Space Mono';
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 12px;
+        }
+
+        .home-actions {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            flex: 1;
+            gap: 10px;
+        }
+
+        .home-actions .btn {
+            margin-top: 0;
+            padding: 18px;
+            font-size: 15px;
+        }
+
+        .bottom-strip {
+            margin-top: auto;
+            padding: 14px;
+            border: 1px solid #1a1a1a;
+            font-family: 'Space Mono';
+            font-size: 11px;
+            color: #666;
+            background: #0d0d0d;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 18px;
+            margin-top: 8px;
+            border: 1px solid var(--line);
+            background: #111;
+            color: #fff;
+            text-align: left;
+            cursor: pointer;
+            font-size: 15px;
+            transition: all 0.2s ease;
+            touch-action: manipulation;
+        }
+
+        .btn:hover {
+            background: #151515;
+            border-color: #333;
+        }
+
+        .block {
+            border: 1px solid var(--line);
+            background: #0d0d0d;
+            padding: 14px;
+            margin-top: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        input {
+            width: 100%;
+            padding: 16px;
+            border: 1px solid var(--line);
+            background: #080808;
+            color: #fff;
+            font-size: 15px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input:focus {
+            border-color: #333;
+        }
+
+        .panel {
+            margin-top: 10px;
+            border: 1px solid var(--line);
+            padding: 14px;
+            background: #0d0d0d;
+            min-height: 50px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+        }
+
+        .card {
+            border: 1px solid var(--line);
+            margin-top: 8px;
+            padding: 14px;
+            opacity: 0;
+            transform: translateY(8px);
+            transition: .3s ease-out;
+            background: #0d0d0d;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .card.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .bar {
+            height: 3px;
+            background: repeating-linear-gradient(to right,
+                    #222 0px,
+                    #222 2%,
+                    transparent 2%,
+                    transparent 4%);
+            margin-top: 8px;
+            position: relative;
+        }
+
+        .bar span {
+            display: block;
+            height: 100%;
+            background: var(--accent);
+            mix-blend-mode: color-dodge;
+        }
+
+        .back {
+            display: inline-block;
+            margin-bottom: 10px;
+            color: #777;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            text-align: left;
+            padding: 6px 0;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .credit {
+            margin-top: 10px;
+            font-size: 11px;
+            text-align: center;
+            color: #444;
+        }
+
+        .perc {
+            font-family: 'Space Mono';
+            font-size: 12px;
+            color: #555;
+            margin-top: 8px;
+            display: block;
+            text-transform: uppercase;
+        }
+
+        .verdict {
+            font-size: 17px;
+            line-height: 1.4;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="wrap">
+
+        <!-- HOME -->
+        <section id="home" class="page active">
+            <div class="home-top">
+                <h1 class="logo">analyzer<span style="color:#ff3b3b">.</span></h1>
+                <p class="sub">system v1.0</p>
+                <div class="divider"></div>
+            </div>
+
+            <div class="home-actions">
+                <p class="modes-label">— THE MODES —</p>
+                <button class="btn" onclick="go('compat')">compatibility</button>
+                <button class="btn" onclick="go('friends')">friends war</button>
+                <button class="btn" onclick="go('roast')">roast that sh*t</button>
+                <button class="btn" onclick="go('toxic')">real toxic trait</button>
+            </div>
+
+            <div class="bottom-strip">
+                <p id="system-msg"></p>
+            </div>
+
+            <p class="credit">built by Krhhzv Mukherjee</p>
+        </section>
+
+        <!-- COMPAT -->
+        <section id="compat" class="page">
+            <button class="back" onclick="go('home')">← back</button>
+            <h2 class="logo">compatibility</h2>
+            <p class="sub">pair analyzer</p>
+
+            <div class="block">
+                <input id="c1" placeholder="name a">
+                <input id="c2" placeholder="name b">
+                <button class="btn" onclick="run('compat')">run scan</button>
+            </div>
+
+            <div id="panel-compat" class="panel"></div>
+            <div id="out-compat"></div>
+        </section>
+
+        <!-- FRIENDS -->
+        <section id="friends" class="page">
+            <button class="back" onclick="go('home')">← back</button>
+            <h2 class="logo">friends war</h2>
+            <p class="sub">social imbalance</p>
+
+            <div class="block">
+                <input id="f1" placeholder="friend a">
+                <input id="f2" placeholder="friend b">
+                <button class="btn" onclick="run('friends')">run scan</button>
+            </div>
+
+            <div id="panel-friends" class="panel"></div>
+            <div id="out-friends"></div>
+        </section>
+
+        <!-- ROAST -->
+        <section id="roast" class="page">
+            <button class="back" onclick="go('home')">← back</button>
+            <h2 class="logo">roast</h2>
+            <p class="sub">damage mode</p>
+
+            <div class="block">
+                <input id="input" placeholder="your name">
+                <button class="btn" onclick="run('roast')">run scan</button>
+            </div>
+
+            <div id="panel-roast" class="panel"></div>
+            <div id="out-roast"></div>
+        </section>
+
+        <!-- TOXIC -->
+        <section id="toxic" class="page">
+            <button class="back" onclick="go('home')">← back</button>
+            <h2 class="logo">toxic trait</h2>
+            <p class="sub">pattern detector</p>
+
+            <div class="block">
+                <input id="input2" placeholder="your name">
+                <button class="btn" onclick="run('toxic')">run scan</button>
+            </div>
+
+            <div id="panel-toxic" class="panel"></div>
+            <div id="out-toxic"></div>
+        </section>
+
+    </div>
+
+    <script>
+        function setVH() {
+            let vh = window.innerHeight * 0.01;
+            document.documentElement.style.setProperty('--vh', `${vh}px`);
+        }
+        setVH();
+        window.addEventListener('resize', setVH);
+
+        const COMPAT_RESULTS = [
+            "strong attraction, weak effort",
+            "high chemistry, low stability",
+            "situationship detected",
+            "one-sided emotional investment",
+            "good vibe, bad timing",
+            "obsession > connection",
+            "they like attention, not you",
+            "mutual confusion",
+            "not aligned emotionally",
+            "interest mismatch",
+            "attachment imbalance",
+            "talking stage forever",
+            "effort feels forced",
+            "chemistry is carrying",
+            "connection is surface level",
+            "not a priority dynamic",
+            "one chasing, one coasting",
+            "mixed signals detected",
+            "not on same page",
+            "romantic illusion only",
+
+            "attention without intention",
+            "temporary energy only",
+            "not built to last",
+            "one more invested",
+            "low emotional depth",
+            "interest not consistent",
+            "no real commitment",
+            "talking but not building",
+            "energy mismatch",
+            "effort feels optional",
+
+            "they enjoy you, not value you",
+            "connection feels uneven",
+            "short-term compatibility",
+            "not emotionally synced",
+            "interest fading slowly",
+            "uncertain direction",
+            "not serious energy",
+            "low long-term potential",
+            "communication weak",
+            "feelings uneven",
+
+            "one is trying, one is coasting",
+            "connection lacks depth",
+            "not aligned goals",
+            "timing is off",
+            "expectation mismatch",
+            "intent unclear",
+            "emotional imbalance",
+            "attention cycle",
+            "validation loop",
+            "interest fluctuating",
+
+            "chemistry without foundation",
+            "low stability dynamic",
+            "connection feels forced",
+            "not progressing forward",
+            "uncertain future",
+            "no emotional clarity",
+            "interest unclear",
+            "effort imbalance",
+            "temporary bond",
+            "weak emotional link",
+
+            "one invested more",
+            "not stable enough",
+            "emotional confusion",
+            "connection not evolving",
+            "effort inconsistent",
+            "one distant, one attached",
+            "imbalanced connection",
+            "not mutually invested",
+            "weak compatibility",
+            "low priority dynamic",
+
+            "connection feels fragile",
+            "not grounded enough",
+            "interest shallow",
+            "not long-term material",
+            "emotional mismatch",
+            "attention-driven bond",
+            "low clarity dynamic",
+            "not progressing clearly",
+            "attachment without direction",
+            "unstable pairing",
+
+            "interest not mutual",
+            "emotionally off-sync",
+            "connection fading slowly",
+            "no defined future",
+            "low emotional return",
+            "connection lacks strength",
+            "not enough depth",
+            "attention over care",
+            "not sustainable",
+            "temporary excitement",
+
+            "weak commitment signals",
+            "low emotional investment",
+            "uncertain outcome",
+            "connection feels off",
+            "not aligned intentions",
+            "low compatibility depth",
+            "feels one-sided",
+            "not evolving",
+            "interest unstable",
+            "effort unclear",
+
+            "connection inconsistent",
+            "emotionally distant pairing",
+            "not aligned expectations",
+            "low stability bond",
+            "connection not serious",
+            "interest not equal",
+            "weak emotional match",
+            "not enough effort",
+            "no real progression",
+            "energy imbalance",
+
+            "not aligned future",
+            "connection feels uneven",
+            "interest fluctuates",
+            "not stable connection",
+            "low commitment energy",
+            "not deep enough",
+            "attention imbalance",
+            "weak emotional link",
+            "not sustainable dynamic",
+            "uncertain compatibility",
+
+            "not progressing naturally",
+            "emotionally unbalanced",
+            "connection unstable",
+            "interest unclear",
+            "no real direction",
+            "effort not matching",
+            "connection shallow",
+            "low emotional sync",
+            "interest inconsistent",
+            "not evolving forward",
+
+            "one-sided energy",
+            "connection lacks base",
+            "not emotionally secure",
+            "unclear bond",
+            "low long-term match",
+            "attention heavy dynamic",
+            "not serious enough",
+            "interest fading",
+            "connection weak",
+            "effort not equal",
+
+            "emotional mismatch",
+            "unstable energy",
+            "not aligned emotionally",
+            "connection lacks growth",
+            "interest not steady",
+            "weak emotional return",
+            "no real bond",
+            "connection feels temporary",
+            "low emotional depth",
+            "interest shallow",
+
+            "connection lacks meaning",
+            "effort unclear",
+            "not stable dynamic",
+            "low clarity",
+            "not grounded connection",
+            "interest fluctuating",
+            "weak compatibility",
+            "no long-term potential",
+            "emotionally off",
+            "not progressing"
+        ];
+
+        const FRIENDS_RESULTS = [
+            "{A} cares more than {B}",
+            "{B} is low effort",
+            "{A} is carrying the friendship",
+            "{B} benefits more",
+            "{A} is the real one",
+            "{B} would disappear first",
+            "{A} values this more",
+            "{B} takes things lightly",
+            "{A} checks in, {B} replies",
+            "{B} is comfortable, not loyal",
+
+            "{A} gives more than receives",
+            "{B} enjoys but doesn’t invest",
+            "{A} is consistent, {B} isn’t",
+            "{B} is there when convenient",
+            "{A} is more genuine",
+            "{B} is replaceable energy",
+            "{A} would stay longer",
+            "{B} would leave faster",
+            "{A} is dependable",
+            "{B} is unpredictable",
+
+            "{A} values loyalty",
+            "{B} values convenience",
+            "{A} shows up",
+            "{B} just exists",
+            "{A} prioritizes, {B} delays",
+            "{B} keeps distance",
+            "{A} is the glue",
+            "{B} is optional",
+            "{A} is invested",
+            "{B} is detached",
+
+            "{A} remembers, {B} forgets",
+            "{B} moves on faster",
+            "{A} is real",
+            "{B} is situational",
+            "{A} is steady",
+            "{B} is inconsistent",
+            "{A} trusts more",
+            "{B} questions more",
+            "{A} gives energy",
+            "{B} takes energy",
+
+            "{A} tries harder",
+            "{B} does minimum",
+            "{A} keeps it strong",
+            "{B} keeps it light",
+            "{A} is loyal",
+            "{B} is flexible",
+            "{A} invests time",
+            "{B} invests randomly",
+            "{A} values connection",
+            "{B} values moments",
+
+            "{A} is stable",
+            "{B} is temporary",
+            "{A} holds on",
+            "{B} lets go easily",
+            "{A} builds, {B} consumes",
+            "{B} enjoys more than contributes",
+            "{A} is committed",
+            "{B} is casual",
+            "{A} gives effort",
+            "{B} gives excuses",
+
+            "{A} is present",
+            "{B} is absent sometimes",
+            "{A} is reliable",
+            "{B} is optional",
+            "{A} invests emotionally",
+            "{B} stays distant",
+            "{A} is honest",
+            "{B} filters everything",
+            "{A} prioritizes this bond",
+            "{B} keeps options open",
+
+            "{A} is serious",
+            "{B} is relaxed",
+            "{A} is clear",
+            "{B} is vague",
+            "{A} is stable energy",
+            "{B} fluctuates",
+            "{A} is long-term",
+            "{B} is short-term",
+            "{A} carries conversations",
+            "{B} responds minimally",
+
+            "{A} checks on {B}",
+            "{B} checks when needed",
+            "{A} remembers details",
+            "{B} forgets easily",
+            "{A} shows consistency",
+            "{B} shows randomly",
+            "{A} is emotionally available",
+            "{B} is emotionally distant",
+            "{A} invests deeply",
+            "{B} stays surface level",
+
+            "{A} values bond",
+            "{B} enjoys moment",
+            "{A} is anchor",
+            "{B} is drifting",
+            "{A} builds trust",
+            "{B} tests limits",
+            "{A} would fight for this",
+            "{B} would let it go",
+            "{A} is more attached",
+            "{B} is less invested",
+
+            "{A} holds connection",
+            "{B} floats in it",
+            "{A} keeps it alive",
+            "{B} lets it fade",
+            "{A} invests consistently",
+            "{B} invests occasionally",
+            "{A} is committed energy",
+            "{B} is flexible energy",
+            "{A} stays",
+            "{B} drifts",
+
+            "{A} is strong bond energy",
+            "{B} is light bond energy",
+            "{A} is effort",
+            "{B} is response",
+            "{A} gives stability",
+            "{B} gives chaos",
+            "{A} is reliable presence",
+            "{B} is occasional presence",
+            "{A} is core friend",
+            "{B} is side character"
+        ];
+
+        const ROAST_RESULTS = [
+            "you try too hard",
+            "you’re not mysterious, just dry",
+            "you want attention, not connection",
+            "you act cold but check notifications instantly",
+            "you ghost and call it peace",
+
+            "you confuse effort with control",
+            "you like the chase, not the person",
+            "you disappear when things get real",
+            "you talk big, act small",
+            "you’re not deep, just overthinking",
+
+            "you expect effort you don’t give",
+            "you avoid accountability",
+            "you repeat the same patterns",
+            "you think you're self-aware",
+            "you don’t communicate, you assume",
+
+            "you overestimate your importance",
+            "you text like you're bored of life",
+            "you’re not busy, just avoiding",
+            "you peaked in your imagination",
+            "you reply like it’s a chore",
+
+            "you act unavailable on purpose",
+            "you think silence is power",
+            "you’re predictable after a while",
+            "you don’t learn, you loop",
+            "you romanticize wrong things",
+
+            "you ignore red flags until it hurts",
+            "you want to be chased, not understood",
+            "you don’t open up, you shut down",
+            "you keep people confused",
+            "you don’t know what you want",
+
+            "you leave before you get left",
+            "you don’t finish what you start",
+            "you overpromise, underdeliver",
+            "you stay in cycles",
+            "you repeat mistakes",
+
+            "you avoid vulnerability",
+            "you pretend you don’t care",
+            "you test people instead of trusting",
+            "you don’t invest, you observe",
+            "you rely on moods",
+
+            "you avoid discomfort",
+            "you stay in safe zones",
+            "you delay everything",
+            "you hesitate too much",
+            "you don’t take risks",
+
+            "you lack consistency",
+            "you get distracted easily",
+            "you lack discipline",
+            "you rely on motivation",
+            "you don’t follow through",
+
+            "you procrastinate everything",
+            "you want results without work",
+            "you expect shortcuts",
+            "you avoid effort",
+            "you settle often",
+
+            "you don’t push enough",
+            "you stop early",
+            "you lack patience",
+            "you want instant outcomes",
+            "you don’t stay consistent",
+
+            "you waste time often",
+            "you avoid hard tasks",
+            "you lack clarity",
+            "you don’t prioritize",
+            "you drift too much",
+
+            "you lack direction",
+            "you scatter energy",
+            "you don’t commit deeply",
+            "you stay tournament level",
+            "you avoid depth",
+
+            "you overthink everything",
+            "you act too little",
+            "you miss opportunities",
+            "you delay decisions",
+            "you hesitate always"
+        ];
+
+        const TOXIC_RESULTS = [
+            "you avoid difficult conversations",
+            "you overthink instead of acting",
+            "you expect effort you don’t give",
+            "you shut down instead of opening up",
+            "you assume instead of asking",
+
+            "you detach when things get real",
+            "you push people away slowly",
+            "you avoid accountability",
+            "you protect your ego too much",
+            "you fear being vulnerable",
+
+            "you delay emotional honesty",
+            "you avoid uncomfortable truths",
+            "you suppress instead of processing",
+            "you expect others to read you",
+            "you stay silent instead of clear",
+
+            "you avoid conflict entirely",
+            "you leave things unresolved",
+            "you let things fade instead of fixing",
+            "you rely on assumptions",
+            "you don’t communicate directly",
+
+            "you fear rejection too much",
+            "you self-sabotage quietly",
+            "you doubt intentions easily",
+            "you overanalyze small things",
+            "you struggle with trust",
+
+            "you hold back emotions",
+            "you hesitate too often",
+            "you get attached too quickly",
+            "you detach just as fast",
+            "you chase attention over connection",
+
+            "you depend on validation",
+            "you seek reassurance constantly",
+            "you struggle with independence",
+            "you overinvest emotionally",
+            "you read too much into everything",
+
+            "you create problems in your head",
+            "you struggle to stay grounded",
+            "you overreact internally",
+            "you rely on moods",
+            "you get overwhelmed easily",
+
+            "you avoid emotional responsibility",
+            "you drift emotionally",
+            "you expect clarity instantly",
+            "you lack patience",
+            "you rush emotional connections",
+
+            "you fear uncertainty",
+            "you compare too much",
+            "you anticipate problems",
+            "you expect disappointment",
+            "you stay guarded always",
+
+            "you hold onto things too long",
+            "you replay conversations",
+            "you struggle with closure",
+            "you revisit old patterns",
+            "you hide expectations",
+
+            "you feel misunderstood often",
+            "you communicate indirectly",
+            "you hint instead of saying",
+            "you withdraw under stress",
+            "you isolate emotionally",
+
+            "you disappear when overwhelmed",
+            "you disconnect suddenly",
+            "you avoid emotional exposure",
+            "you repeat behaviors",
+            "you stay in comfort zones",
+
+            "you resist change",
+            "you delay growth",
+            "you repeat mistakes",
+            "you lack self-awareness",
+            "you avoid introspection",
+
+            "you ignore feedback",
+            "you miss your patterns",
+            "you rely on emotional habits",
+            "you stay emotionally stuck"
+        ];
+
+        /* NAV */
+        function go(page) {
+            document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+            document.getElementById(page).classList.add("active");
+        }
+
+        /* SYSTEM MESSAGE */
+        const msgs = [
+            "you shouldn’t have checked this 💀",
+            "this might ruin something",
+            "you already know the answer",
+            "don’t take this seriously (you will)",
+            "this result is uncomfortable"
+        ];
+
+        const msgEl = document.getElementById("system-msg");
+        if (msgEl) {
+            msgEl.textContent = "> " + msgs[Math.floor(Math.random() * msgs.length)];
+        }
+
+        /* HELPERS */
+
+        function normalize(str) {
+            return String(str).toLowerCase().replace(/\s+/g, "").trim();
+        }
+
+        function hash(str) {
+            let h = 0;
+            for (let i = 0; i < str.length; i++) {
+                h = str.charCodeAt(i) + ((h << 5) - h);
+            }
+            return Math.abs(h);
+        }
+
+        function pick(arr, seed) {
+            return arr[seed % arr.length];
+        }
+
+        /* RUN */
+
+        function run(mode) {
+
+            const panel = document.getElementById("panel-" + mode);
+            const out = document.getElementById("out-" + mode);
+
+            out.innerHTML = "";
+            panel.innerHTML = "scanning...";
+
+            let base = "";
+            let nameA = "you";
+            let nameB = "them";
+
+            if (mode === "compat") {
+                const v1 = document.getElementById('c1').value;
+                const v2 = document.getElementById('c2').value;
+                if (v1) nameA = v1;
+                if (v2) nameB = v2;
+                base = normalize(v1) + normalize(v2);
+            }
+            if (mode === "friends") {
+                const v1 = document.getElementById('f1').value;
+                const v2 = document.getElementById('f2').value;
+                if (v1) nameA = v1;
+                if (v2) nameB = v2;
+                base = normalize(v1) + normalize(v2);
+            }
+            if (mode === "roast") {
+                const v = document.getElementById('input').value;
+                if (v) nameA = v;
+                base = normalize(v);
+            }
+            if (mode === "toxic") {
+                const v = document.getElementById('input2').value;
+                if (v) nameA = v;
+                base = normalize(v);
+            }
+
+            const seed = hash(base + mode);
+
+            const data = {
+                compat: COMPAT_RESULTS,
+                friends: FRIENDS_RESULTS,
+                roast: ROAST_RESULTS,
+                toxic: TOXIC_RESULTS
+            }[mode];
+
+            setTimeout(() => {
+
+                panel.innerHTML = "";
+
+                // FIXED 2 CARD SYSTEM
+                for (let i = 0; i < 2; i++) {
+
+                    let result = pick(data, seed + i);
+                    result = result.replace(/{A}/g, nameA).replace(/{B}/g, nameB);
+
+                    const rawScore = Math.abs((seed * (i + 5)) % 100);
+                    const score = Math.round(rawScore / 2) * 2;
+
+                    setTimeout(() => {
+
+                        const card = document.createElement("div");
+                        card.className = "card";
+
+                        card.innerHTML = `
+                  <div class="verdict">${result}</div>
+                  <span class="perc">${score}% match</span>
+                  <div class="bar"><span style="width:${score}%"></span></div>
+                `;
+
+                        out.appendChild(card);
+
+                        requestAnimationFrame(() => {
+                            card.classList.add("show");
+                        });
+
+                    }, i * 200);
+                }
+
+            }, 800);
+        }
+    </script>
+
+</body>
+
+</html>
